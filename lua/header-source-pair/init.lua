@@ -24,6 +24,10 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("HeaderSourcePair", function()
     M.open_pair()
   end, { desc = "Open header/source pair in split view" })
+
+  vim.api.nvim_create_user_command("HeaderSourcePairCursor", function()
+    M.open_pair_under_cursor()
+  end, { desc = "Open header/source pair for include under cursor" })
 end
 
 function M.open_pair(filepath)
@@ -58,6 +62,29 @@ function M.open_pair(filepath)
   end
 
   window.open_pair(header_path, source_path)
+end
+
+function M.open_pair_under_cursor()
+  local line = vim.api.nvim_get_current_line()
+
+  -- Try to parse #include "filename"
+  local include_file = line:match('#%s*include%s*"([^"]+)"')
+  if not include_file then
+    vim.notify("No local include found on current line", vim.log.levels.WARN)
+    return
+  end
+
+  -- Extract just the filename (in case include has path like "subdir/file.h")
+  local filename = include_file:match("([^/]+)$")
+
+  -- Find the file in the project
+  local filepath = finder.find_file_in_project(filename)
+  if not filepath then
+    vim.notify("Could not find " .. filename .. " in project", vim.log.levels.WARN)
+    return
+  end
+
+  M.open_pair(filepath)
 end
 
 return M

@@ -1,10 +1,17 @@
 -- Test script for header-source-pair plugin
 -- Run from neovim with: :luafile test-project/test_plugin.lua
 
--- Add plugin to runtime path
-vim.opt.runtimepath:prepend(vim.fn.getcwd())
+local cwd = vim.fn.getcwd()
 
-local finder = require("header-source-pair.finder")
+-- Clear module cache and load fresh from plugin directory
+package.loaded["header-source-pair.finder"] = nil
+package.loaded["header-source-pair.recent"] = nil
+package.loaded["header-source-pair.window"] = nil
+package.loaded["header-source-pair"] = nil
+
+-- Load finder directly and inject into package.loaded so other modules use it
+local finder = dofile(cwd .. "/lua/header-source-pair/finder.lua")
+package.loaded["header-source-pair.finder"] = finder
 
 local function test(name, condition)
   if condition then
@@ -49,9 +56,20 @@ test("find_pair for utils.cpp finds utils.h", pair2 and pair2:match("utils%.h$")
 local pair3 = finder.find_pair(test_dir .. "/src/main.cpp")
 test("find_pair for main.cpp returns nil", pair3 == nil)
 
+-- Test find_file_in_project (used by HeaderSourcePairCursor)
+local found_header = finder.find_file_in_project("calculator.h")
+test("find_file_in_project finds calculator.h", found_header and found_header:match("calculator%.h$") ~= nil)
+
+local found_source = finder.find_file_in_project("utils.cpp")
+test("find_file_in_project finds utils.cpp", found_source and found_source:match("utils%.cpp$") ~= nil)
+
+local not_found = finder.find_file_in_project("nonexistent.h")
+test("find_file_in_project returns nil for missing file", not_found == nil)
+
 print("\n=== Recent pairs tests ===\n")
 
-local recent = require("header-source-pair.recent")
+local recent = dofile(cwd .. "/lua/header-source-pair/recent.lua")
+package.loaded["header-source-pair.recent"] = recent
 
 -- Clear any existing test data by getting fresh state
 local initial_pairs = recent.get_pairs()

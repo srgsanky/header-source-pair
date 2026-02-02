@@ -160,4 +160,15 @@ function M.find_pair(filepath)
   return M.find_best_match(absolute_path, candidates)
 end
 
+function M.find_file_in_project(filename)
+  local root = M.get_project_root()
+  -- Exclude dot folders (e.g., .git, .cache, .build)
+  local cmd = string.format("find %s -name %s -type f -not -path '*/.*' 2>/dev/null", vim.fn.shellescape(root), vim.fn.shellescape(filename))
+  local results = vim.fn.systemlist(cmd)
+  if vim.v.shell_error == 0 and #results > 0 then
+    return results[1]
+  end
+  return nil
+end
+
 return M

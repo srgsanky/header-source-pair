@@ -1,15 +1,27 @@
-# Header source pair
+# header-source-pair
 
-Header source pair is an nvim plugin that will open both the header and source file in a split view. It integrates with telescope, so you
-can fuzzy find a header or source file and this plugin will open the header on the left and source on the right.
+> This plugin was implemented entirely by prompting [Claude](https://claude.ai) using [Claude Code](https://claude.ai/claude-code).
 
-How does the plugin handle different window configurations?
-If the nvim already has a vertical split, the exiting windows will be reused. If there is more than 2 windows, only the first two windows
-will be used. If there is only one window, a new vsplit will be opened to show the source file.
+A Neovim plugin for C/C++ development that opens header and source files side by side in a split view. Integrates with Telescope for fuzzy finding.
 
-How does the plugin find the relevant source or header file?
-The plugin will look for the source/header with the same name (without the extension). If there are multiple matches, the plugin will look
-at the source file to see what header is included and show only the header that gets included.
+## Features
+
+- Open header/source pairs in a vertical split (header on left, source on right)
+- Telescope picker to find and open any C/C++ file with its pair
+- Recent pairs history (project-specific) for quick switching
+- Open pairs from `#include` statements under cursor
+- Smart matching using `#include` analysis when multiple candidates exist
+
+## Window Behavior
+
+| Current Layout | Action |
+|----------------|--------|
+| Single window | Creates a new vsplit |
+| Two+ windows | Reuses the first two windows |
+
+## File Matching
+
+The plugin finds pairs by matching the base filename (without extension). When multiple matches exist, it parses `#include "..."` statements to determine the correct pair.
 
 ## Design Decisions
 
@@ -80,13 +92,17 @@ use {
 
 ## Usage
 
-### Command
+### Commands
 
 ```vim
 :HeaderSourcePair
 ```
+Opens the current buffer's file and its matching header/source in a split view.
 
-Opens the current file and its matching header/source in a split view.
+```vim
+:HeaderSourcePairCursor
+```
+Opens the pair for the `#include` under the cursor. Useful when browsing include statements.
 
 ### Telescope Integration
 
@@ -111,6 +127,9 @@ require("telescope").extensions.header_source_pair.recent()
 ```lua
 -- If you're editing calculator.cpp and press <leader>hs, it opens calculator.h alongside it
 vim.keymap.set("n", "<leader>hs", "<cmd>HeaderSourcePair<cr>", { desc = "Open header/source pair for current buffer" })
+
+-- Open pair for the #include under cursor
+vim.keymap.set("n", "<leader>hc", "<cmd>HeaderSourcePairCursor<cr>", { desc = "Open header/source pair under cursor" })
 
 vim.keymap.set("n", "<leader>fp", "<cmd>Telescope header_source_pair<cr>", { desc = "[f]ind [p]airs" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope header_source_pair recent<cr>", { desc = "[f]ind [r]ecent pairs" })
@@ -153,6 +172,7 @@ test-project/
 - Include parsing extracts local includes properly
 - Pair matching finds files across different directories
 - No-match case correctly returns nil for files without pairs
+- Finding files by name in project (for cursor feature)
 - Recent pairs are stored and retrieved correctly
 - New pairs appear at the top of the recent list
 - Re-opening a pair moves it to the top (no duplicates)
