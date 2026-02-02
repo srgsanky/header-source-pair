@@ -8,13 +8,42 @@ M.config = {
   header_percent = 50,
 }
 
+-- Filetypes that indicate sidebar/explorer windows (not for editing code)
+local sidebar_filetypes = {
+  NvimTree = true,
+  ["neo-tree"] = true,
+  nerdtree = true,
+  netrw = true,
+  CHADTree = true,
+  fern = true,
+  Outline = true,
+  aerial = true,
+  undotree = true,
+  diff = true,
+  DiffviewFiles = true,
+  DiffviewFileHistory = true,
+  Trouble = true,
+  qf = true,
+  help = true,
+  man = true,
+  fugitive = true,
+  gitcommit = true,
+}
+
+local function is_sidebar_window(win)
+  local buf = vim.api.nvim_win_get_buf(win)
+  local ft = vim.bo[buf].filetype
+  return sidebar_filetypes[ft] or false
+end
+
 local function get_windows()
   local windows = vim.api.nvim_tabpage_list_wins(0)
   local normal_windows = {}
 
   for _, win in ipairs(windows) do
     local config = vim.api.nvim_win_get_config(win)
-    if config.relative == "" then
+    -- Skip floating windows and sidebar windows
+    if config.relative == "" and not is_sidebar_window(win) then
       table.insert(normal_windows, win)
     end
   end

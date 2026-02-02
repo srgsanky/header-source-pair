@@ -19,6 +19,8 @@ A Neovim plugin for C/C++ development that opens header and source files side by
 | Single window | Creates a new vsplit |
 | Two+ windows | Reuses the first two windows |
 
+**Sidebar windows are ignored.** File explorers (NvimTree, neo-tree, etc.), outline panels, quickfix, help, and other sidebar windows are skipped when counting windows. This means you can keep your file explorer open and the plugin will correctly use only your editing windows.
+
 ## File Matching
 
 The plugin finds pairs by matching the base filename (without extension). When multiple matches exist, it parses `#include "..."` statements to determine the correct pair.
