@@ -41,6 +41,10 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("HeaderSourcePairCursor", function()
     M.open_pair_under_cursor()
   end, { desc = "Open header/source pair for include under cursor" })
+
+  vim.api.nvim_create_user_command("HeaderSourcePairTest", function()
+    M.open_test()
+  end, { desc = "Open unit test file in third window" })
 end
 
 function M.open_pair(filepath)
@@ -98,6 +102,29 @@ function M.open_pair_under_cursor()
   end
 
   M.open_pair(filepath)
+end
+
+function M.open_test(filepath)
+  filepath = filepath or vim.api.nvim_buf_get_name(0)
+
+  if filepath == "" then
+    vim.notify("No file in current buffer", vim.log.levels.WARN)
+    return
+  end
+
+  local file_type = finder.get_file_type(filepath)
+  if not file_type then
+    vim.notify("Current file is not a C/C++ header or source file", vim.log.levels.WARN)
+    return
+  end
+
+  local test_path = finder.find_test_file(filepath)
+  if not test_path then
+    vim.notify("No matching test file found", vim.log.levels.INFO)
+    return
+  end
+
+  window.open_test(test_path)
 end
 
 return M

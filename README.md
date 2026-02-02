@@ -11,6 +11,7 @@ A Neovim plugin for C/C++ development that opens header and source files side by
 - Recent pairs history (project-specific) for quick switching
 - Open pairs from `#include` statements under cursor
 - Smart matching using `#include` analysis when multiple candidates exist
+- Open associated unit test file in a third window (splits source window with opposite direction)
 
 ## Window Behavior
 
@@ -24,6 +25,14 @@ A Neovim plugin for C/C++ development that opens header and source files side by
 ## File Matching
 
 The plugin finds pairs by matching the base filename (without extension). When multiple matches exist, it parses `#include "..."` statements to determine the correct pair.
+
+## Unit Test Matching
+
+The plugin finds unit tests by looking for files named `<basename>_test.*`. For example:
+- `calculator.cpp` → `calculator_test.cpp`
+- `utils.h` → `utils_test.cpp`
+
+The test window opens in a split opposite to your configured split direction (vertical split if horizontal is preferred, and vice versa), sharing screen space with the source window.
 
 ## Design Decisions
 
@@ -61,7 +70,9 @@ lua/
 - `finder.lua:65` - Parses local includes from source files
 - `finder.lua:82` - Searches project for matching files
 - `finder.lua:107` - Determines best match using include analysis
+- `finder.lua:174` - Finds unit test files (`<basename>_test.*`)
 - `window.lua:19` - Handles split window logic
+- `window.lua:95` - Opens test file in third window (opposite split direction)
 - `recent.lua` - Stores history per project in `~/.local/share/nvim/header-source-pair/<project-hash>/`
 
 ## Installation
@@ -106,6 +117,11 @@ Opens the current buffer's file and its matching header/source in a split view.
 ```
 Opens the pair for the `#include` under the cursor. Useful when browsing include statements.
 
+```vim
+:HeaderSourcePairTest
+```
+Opens the unit test file (`<name>_test.*`) in a third window. The test window splits the source window using the opposite split direction.
+
 ### Telescope Integration
 
 Find all C/C++ files and open with their pair:
@@ -132,6 +148,9 @@ vim.keymap.set("n", "<leader>hs", "<cmd>HeaderSourcePair<cr>", { desc = "Open he
 
 -- Open pair for the #include under cursor
 vim.keymap.set("n", "<leader>hc", "<cmd>HeaderSourcePairCursor<cr>", { desc = "Open header/source pair under cursor" })
+
+-- Open unit test file in third window
+vim.keymap.set("n", "<leader>fu", "<cmd>HeaderSourcePairTest<cr>", { desc = "[f]ind [u]nit test" })
 
 vim.keymap.set("n", "<leader>fp", "<cmd>Telescope header_source_pair<cr>", { desc = "[f]ind [p]airs" })
 vim.keymap.set("n", "<leader>fr", "<cmd>Telescope header_source_pair recent<cr>", { desc = "[f]ind [r]ecent pairs" })

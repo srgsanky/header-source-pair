@@ -92,4 +92,23 @@ function M.open_single(filepath)
   vim.cmd("edit " .. vim.fn.fnameescape(filepath))
 end
 
+function M.open_test(test_path)
+  local windows = get_windows()
+
+  -- Determine opposite split direction
+  local opposite_split_cmd = M.config.split == "horizontal" and "vsplit" or "split"
+
+  if #windows >= 2 then
+    -- Go to the second window (source window) and split it
+    vim.api.nvim_set_current_win(windows[2])
+    vim.cmd(opposite_split_cmd .. " " .. vim.fn.fnameescape(test_path))
+  elseif #windows == 1 then
+    -- Only one window, just split it
+    vim.cmd(opposite_split_cmd .. " " .. vim.fn.fnameescape(test_path))
+  else
+    -- No windows, just open the file
+    vim.cmd("edit " .. vim.fn.fnameescape(test_path))
+  end
+end
+
 return M

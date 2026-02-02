@@ -171,4 +171,29 @@ function M.find_file_in_project(filename)
   return nil
 end
 
+function M.find_test_file(filepath)
+  local basename = get_basename(filepath)
+  if not basename then
+    return nil
+  end
+
+  -- Strip _test suffix if present (to get the base name for the actual source)
+  local base_without_test = basename:match("^(.+)_test$")
+  if base_without_test then
+    basename = base_without_test
+  end
+
+  local root = M.get_project_root()
+  local test_pattern = basename .. "_test.*"
+
+  -- Exclude dot folders (e.g., .git, .cache, .build)
+  local cmd = string.format("find %s -name %s -type f -not -path '*/.*' 2>/dev/null", vim.fn.shellescape(root), vim.fn.shellescape(test_pattern))
+  local results = vim.fn.systemlist(cmd)
+
+  if vim.v.shell_error == 0 and #results > 0 then
+    return results[1]
+  end
+  return nil
+end
+
 return M
