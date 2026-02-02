@@ -98,7 +98,11 @@ function M.open_test(test_path)
   -- Determine opposite split direction
   local opposite_split_cmd = M.config.split == "horizontal" and "vsplit" or "split"
 
-  if #windows >= 2 then
+  if #windows >= 3 then
+    -- Reuse the third window for test file
+    vim.api.nvim_set_current_win(windows[3])
+    vim.cmd("edit " .. vim.fn.fnameescape(test_path))
+  elseif #windows == 2 then
     -- Go to the second window (source window) and split it
     vim.api.nvim_set_current_win(windows[2])
     vim.cmd(opposite_split_cmd .. " " .. vim.fn.fnameescape(test_path))
