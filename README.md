@@ -139,6 +139,12 @@ vim.keymap.set("n", "<leader>fr", "<cmd>Telescope header_source_pair recent<cr>"
 
 ```lua
 require("header-source-pair").setup({
+  -- Split direction: "vertical" (default) or "horizontal"
+  split = "vertical",
+
+  -- Percentage of space for header window (1-99, default: 50)
+  header_percent = 50,
+
   -- Customize file extensions (optional)
   header_extensions = { "h", "hpp", "hxx", "hh", "H" },
   source_extensions = { "c", "cpp", "cc", "cxx", "C" },

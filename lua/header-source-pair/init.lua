@@ -6,6 +6,8 @@ local M = {}
 M.config = {
   header_extensions = { "h", "hpp", "hxx", "hh", "H" },
   source_extensions = { "c", "cpp", "cc", "cxx", "C" },
+  split = "vertical",    -- "vertical" or "horizontal"
+  header_percent = 50,   -- percentage of space for header (1-99)
 }
 
 function M.setup(opts)
@@ -20,6 +22,17 @@ function M.setup(opts)
     M.config.source_extensions = opts.source_extensions
     finder.source_extensions = opts.source_extensions
   end
+
+  if opts.split then
+    M.config.split = opts.split
+  end
+
+  if opts.header_percent then
+    M.config.header_percent = opts.header_percent
+  end
+
+  -- Pass config to window module
+  window.config = M.config
 
   vim.api.nvim_create_user_command("HeaderSourcePair", function()
     M.open_pair()

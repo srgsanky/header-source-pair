@@ -126,4 +126,65 @@ remove_test_entries()
 local pairs_after_cleanup = recent.get_pairs()
 test("cleanup removed test entries", #pairs_after_cleanup == initial_count)
 
+print("\n=== Configuration tests ===\n")
+
+-- Load window module
+local window = dofile(cwd .. "/lua/header-source-pair/window.lua")
+package.loaded["header-source-pair.window"] = window
+
+-- Load main module
+local hsp = dofile(cwd .. "/lua/header-source-pair/init.lua")
+package.loaded["header-source-pair"] = hsp
+
+-- Test default config values
+test("default split is vertical", hsp.config.split == "vertical")
+test("default header_percent is 50", hsp.config.header_percent == 50)
+
+-- Test setup with custom config
+hsp.setup({
+  split = "horizontal",
+  header_percent = 70,
+})
+test("config split updates to horizontal", hsp.config.split == "horizontal")
+test("config header_percent updates to 70", hsp.config.header_percent == 70)
+test("window module receives split config", window.config.split == "horizontal")
+test("window module receives header_percent config", window.config.header_percent == 70)
+
+-- Reset to defaults for other tests
+hsp.config.split = "vertical"
+hsp.config.header_percent = 50
+window.config = hsp.config
+
+print("\n=== Window tests ===\n")
+
+-- Close all windows except one
+vim.cmd("only")
+local initial_win_count = #vim.api.nvim_tabpage_list_wins(0)
+test("starts with single window", initial_win_count == 1)
+
+-- Open a pair and check window count
+window.open_pair(test_dir .. "/include/calculator.h", test_dir .. "/src/calculator.cpp")
+local after_split_count = #vim.api.nvim_tabpage_list_wins(0)
+test("opening pair creates two windows", after_split_count == 2)
+
+-- Check that both files are loaded in buffers
+local wins = vim.api.nvim_tabpage_list_wins(0)
+local buf1 = vim.api.nvim_win_get_buf(wins[1])
+local buf2 = vim.api.nvim_win_get_buf(wins[2])
+local name1 = vim.api.nvim_buf_get_name(buf1)
+local name2 = vim.api.nvim_buf_get_name(buf2)
+local has_header = name1:match("calculator%.h$") or name2:match("calculator%.h$")
+local has_source = name1:match("calculator%.cpp$") or name2:match("calculator%.cpp$")
+test("header file is open in a window", has_header ~= nil)
+test("source file is open in a window", has_source ~= nil)
+
+-- Test reusing existing windows
+window.open_pair(test_dir .. "/include/utils.h", test_dir .. "/src/utils.cpp")
+local after_reuse_count = #vim.api.nvim_tabpage_list_wins(0)
+test("opening another pair reuses windows (still 2)", after_reuse_count == 2)
+
+-- Clean up
+vim.cmd("only")
+vim.cmd("enew")
+
 print("\n=== Tests complete ===\n")
