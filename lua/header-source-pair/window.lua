@@ -1,5 +1,7 @@
 local M = {}
 
+local recent = require("header-source-pair.recent")
+
 local function get_windows()
   local windows = vim.api.nvim_tabpage_list_wins(0)
   local normal_windows = {}
@@ -15,6 +17,9 @@ local function get_windows()
 end
 
 function M.open_pair(header_path, source_path)
+  -- Record pair in recent history
+  recent.add_pair(header_path, source_path)
+
   local windows = get_windows()
 
   if #windows >= 2 then

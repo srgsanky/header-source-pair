@@ -11,6 +11,7 @@ local action_state = require("telescope.actions.state")
 
 local hsp_finder = require("header-source-pair.finder")
 local hsp_window = require("header-source-pair.window")
+local hsp_recent = require("header-source-pair.recent")
 
 local function get_all_cpp_files()
   local root = hsp_finder.get_project_root()
@@ -95,8 +96,52 @@ local function header_source_pair(opts)
   }):find()
 end
 
+local function recent(opts)
+  opts = opts or {}
+
+  local pairs = hsp_recent.get_pairs()
+
+  if #pairs == 0 then
+    vim.notify("No recent pairs found", vim.log.levels.INFO)
+    return
+  end
+
+  pickers.new(opts, {
+    prompt_title = "Recent Header/Source Pairs",
+    finder = finders.new_table({
+      results = pairs,
+      entry_maker = function(entry)
+        local header_name = vim.fn.fnamemodify(entry.header, ":t")
+        local source_name = vim.fn.fnamemodify(entry.source, ":t")
+        local header_rel = vim.fn.fnamemodify(entry.header, ":.")
+        local source_rel = vim.fn.fnamemodify(entry.source, ":.")
+        local display = header_name .. " ↔ " .. source_name
+        local ordinal = header_rel .. " " .. source_rel
+        return {
+          value = entry,
+          display = display,
+          ordinal = ordinal,
+        }
+      end,
+    }),
+    sorter = conf.generic_sorter(opts),
+    attach_mappings = function(prompt_bufnr, map)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        if selection then
+          local pair = selection.value
+          hsp_window.open_pair(pair.header, pair.source)
+        end
+      end)
+      return true
+    end,
+  }):find()
+end
+
 return telescope.register_extension({
   exports = {
     header_source_pair = header_source_pair,
+    recent = recent,
   },
 })

@@ -37,16 +37,18 @@ lua/
     init.lua       -- Setup, config, and :HeaderSourcePair command
     finder.lua     -- File matching and include parsing logic
     window.lua     -- Window split management
+    recent.lua     -- Recent pairs history (project-specific)
   telescope/
     _extensions/
-      header_source_pair.lua  -- Telescope picker
+      header_source_pair.lua  -- Telescope pickers (find pairs, recent pairs)
 ```
 
 **Key implementation details:**
-- `finder.lua:56` - Parses local includes from source files
-- `finder.lua:72` - Searches project for matching files
-- `finder.lua:97` - Determines best match using include analysis
-- `window.lua:16` - Handles split window logic
+- `finder.lua:65` - Parses local includes from source files
+- `finder.lua:82` - Searches project for matching files
+- `finder.lua:107` - Determines best match using include analysis
+- `window.lua:19` - Handles split window logic
+- `recent.lua` - Stores history per project in `~/.local/share/nvim/header-source-pair/<project-hash>/`
 
 ## Installation
 
@@ -72,9 +74,6 @@ use {
   requires = { "nvim-telescope/telescope.nvim" }, -- optional
   config = function()
     require("header-source-pair").setup()
-
-    -- Add keybinding
-    vim.keymap.set('n', '<leader>fh', '<cmd>Telescope header_source_pair<cr>', { desc = '[F]ind [h]eader/source pair' })
   end,
 }
 ```
@@ -91,21 +90,30 @@ Opens the current file and its matching header/source in a split view.
 
 ### Telescope Integration
 
+Find all C/C++ files and open with their pair:
 ```vim
 :Telescope header_source_pair
 ```
 
-Or in Lua:
+Browse recently opened pairs (project-specific history):
+```vim
+:Telescope header_source_pair recent
+```
 
+Or in Lua:
 ```lua
 require("telescope").extensions.header_source_pair.header_source_pair()
+require("telescope").extensions.header_source_pair.recent()
 ```
 
 ### Keybinding Example
 
 ```lua
-vim.keymap.set("n", "<leader>hs", "<cmd>HeaderSourcePair<cr>", { desc = "Open header/source pair" })
-vim.keymap.set("n", "<leader>fh", "<cmd>Telescope header_source_pair<cr>", { desc = "Find header/source pair" })
+-- If you're editing calculator.cpp and press <leader>hs, it opens calculator.h alongside it
+vim.keymap.set("n", "<leader>hs", "<cmd>HeaderSourcePair<cr>", { desc = "Open header/source pair for current buffer" })
+
+vim.keymap.set("n", "<leader>fp", "<cmd>Telescope header_source_pair<cr>", { desc = "[f]ind [p]airs" })
+vim.keymap.set("n", "<leader>fr", "<cmd>Telescope header_source_pair recent<cr>", { desc = "[f]ind [r]ecent pairs" })
 ```
 
 ## Configuration
@@ -145,6 +153,9 @@ test-project/
 - Include parsing extracts local includes properly
 - Pair matching finds files across different directories
 - No-match case correctly returns nil for files without pairs
+- Recent pairs are stored and retrieved correctly
+- New pairs appear at the top of the recent list
+- Re-opening a pair moves it to the top (no duplicates)
 
 **Interactive testing:**
 1. Open neovim in the plugin directory
