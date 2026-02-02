@@ -72,6 +72,9 @@ use {
   requires = { "nvim-telescope/telescope.nvim" }, -- optional
   config = function()
     require("header-source-pair").setup()
+
+    -- Add keybinding
+    vim.keymap.set('n', '<leader>fh', '<cmd>Telescope header_source_pair<cr>', { desc = '[F]ind [h]eader/source pair' })
   end,
 }
 ```

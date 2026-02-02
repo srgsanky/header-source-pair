@@ -25,7 +25,8 @@ local function get_all_cpp_files()
 
   local files = {}
   for _, ext in ipairs(all_extensions) do
-    local cmd = string.format("find %s -name '*.%s' -type f 2>/dev/null", vim.fn.shellescape(root), ext)
+    -- Exclude dot folders (e.g., .git, .cache, .build)
+    local cmd = string.format("find %s -name '*.%s' -type f -not -path '*/.*' 2>/dev/null", vim.fn.shellescape(root), ext)
     local results = vim.fn.systemlist(cmd)
     if vim.v.shell_error == 0 then
       for _, file in ipairs(results) do

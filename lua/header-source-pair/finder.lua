@@ -103,7 +103,8 @@ function M.find_matching_files(filepath)
 
   for _, ext in ipairs(search_extensions) do
     local pattern = basename .. "." .. ext
-    local cmd = string.format("find %s -name %s -type f 2>/dev/null", vim.fn.shellescape(root), vim.fn.shellescape(pattern))
+    -- Exclude dot folders (e.g., .git, .cache, .build)
+    local cmd = string.format("find %s -name %s -type f -not -path '*/.*' 2>/dev/null", vim.fn.shellescape(root), vim.fn.shellescape(pattern))
     local results = vim.fn.systemlist(cmd)
     if vim.v.shell_error == 0 then
       for _, match in ipairs(results) do
